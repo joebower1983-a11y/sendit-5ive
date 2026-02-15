@@ -1,0 +1,22 @@
+version = 1
+
+[[packages]]
+name = "sendit-5ive"
+version = "0.0.0"
+address = "SIMULATED_PROGRAM_ID_1771132727251"
+bytecode_hash = "4fd9894a4d01a3f6ce912ef7f372dfad599d5d128d51cfbb1fdc660a3a33f6bf"
+deployed_at = "2026-02-15T05:18:47.252Z"
+
+  [packages.exports]
+  methods = [
+  "create_stable_pair",
+  "swap_token_for_stable",
+  "swap_stable_for_token",
+  "add_liquidity",
+  "remove_liquidity",
+  "set_pair_paused",
+  "update_pair_fee",
+  "get_token_reserve",
+  "get_stable_reserve"
+]
+  interfaces = [ ]
