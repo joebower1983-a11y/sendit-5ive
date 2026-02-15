@@ -1,45 +1,33 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class EmbeddableWidgetsClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async createWidgetConfig(accounts: { widgetConfig: Address; creator: Address; tokenMint: Address },
-    args: { widgetType: number; theme: number; customColorR: number; customColorG: number; customColorB: number; showPrice: number; showVolume: number }) {
-    const p = await this.handle.getProgram();
-    return p.method("create_widget_config").accounts({
-      widget_config: accounts.widgetConfig, creator: accounts.creator, token_mint: accounts.tokenMint,
-    }).args({
-      widget_type: args.widgetType, theme: args.theme,
-      custom_color_r: args.customColorR, custom_color_g: args.customColorG, custom_color_b: args.customColorB,
-      show_price: args.showPrice, show_volume: args.showVolume,
-    }).rpc();
+  createWidgetConfig(accounts: { widgetConfig: Address; creator: Address; tokenMint: Address },
+    args: { widgetType: number; theme: number; customColorR: number; customColorG: number; customColorB: number; showPrice: number; showVolume: number }): Promise<ExecuteResult> {
+    return this.h.execute("create_widget_config",
+      [args.widgetType, args.theme, args.customColorR, args.customColorG, args.customColorB, args.showPrice, args.showVolume],
+      [s(accounts.widgetConfig), s(accounts.creator), s(accounts.tokenMint)]);
   }
 
-  async updateWidgetConfig(accounts: { widgetConfig: Address; creator: Address },
-    args: { widgetType: number; theme: number; customColorR: number; customColorG: number; customColorB: number; showPrice: number; showVolume: number; showHolders: number }) {
-    const p = await this.handle.getProgram();
-    return p.method("update_widget_config").accounts({
-      widget_config: accounts.widgetConfig, creator: accounts.creator,
-    }).args({
-      widget_type: args.widgetType, theme: args.theme,
-      custom_color_r: args.customColorR, custom_color_g: args.customColorG, custom_color_b: args.customColorB,
-      show_price: args.showPrice, show_volume: args.showVolume, show_holders: args.showHolders,
-    }).rpc();
+  updateWidgetConfig(accounts: { widgetConfig: Address; creator: Address },
+    args: { widgetType: number; theme: number; customColorR: number; customColorG: number; customColorB: number; showPrice: number; showVolume: number; showHolders: number }): Promise<ExecuteResult> {
+    return this.h.execute("update_widget_config",
+      [args.widgetType, args.theme, args.customColorR, args.customColorG, args.customColorB, args.showPrice, args.showVolume, args.showHolders],
+      [s(accounts.widgetConfig), s(accounts.creator)]);
   }
 
-  async recordWidgetView(accounts: { widgetConfig: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("record_widget_view").accounts({ widget_config: accounts.widgetConfig }).args({}).rpc();
+  recordWidgetView(accounts: { widgetConfig: Address }): Promise<ExecuteResult> {
+    return this.h.execute("record_widget_view", [], [s(accounts.widgetConfig)]);
   }
 
-  async disableWidget(accounts: { widgetConfig: Address; authority: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("disable_widget").accounts({ widget_config: accounts.widgetConfig, authority: accounts.authority }).args({}).rpc();
+  disableWidget(accounts: { widgetConfig: Address; authority: Address }): Promise<ExecuteResult> {
+    return this.h.execute("disable_widget", [], [s(accounts.widgetConfig), s(accounts.authority)]);
   }
 
-  async getWidgetViews(accounts: { widgetConfig: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_widget_views").accounts({ widget_config: accounts.widgetConfig }).args({}).rpc();
+  getWidgetViews(accounts: { widgetConfig: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_widget_views", [], [s(accounts.widgetConfig)]);
   }
 }

@@ -1,67 +1,39 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class BridgeClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async initializeBridge(accounts: { bridgeConfig: Address; authority: Address }, args: {
-    wormholeProgram: Address; wormholeBridge: Address; feeCollector: Address;
-    defaultFeeBps: bigint | number; defaultMinAmount: bigint | number;
-  }) {
-    const p = await this.handle.getProgram();
-    return p.method("initialize_bridge").accounts({
-      bridge_config: accounts.bridgeConfig, authority: accounts.authority,
-    }).args({
-      wormhole_program: args.wormholeProgram, wormhole_bridge: args.wormholeBridge,
-      fee_collector: args.feeCollector, default_fee_bps: args.defaultFeeBps,
-      default_min_amount: args.defaultMinAmount,
-    }).rpc();
+  initializeBridge(accounts: { bridgeConfig: Address; authority: Address },
+    args: { wormholeProgram: Address; wormholeBridge: Address; feeCollector: Address; defaultFeeBps: bigint | number; defaultMinAmount: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("initialize_bridge",
+      [s(args.wormholeProgram), s(args.wormholeBridge), s(args.feeCollector), args.defaultFeeBps, args.defaultMinAmount],
+      [s(accounts.bridgeConfig), s(accounts.authority)]);
   }
 
-  async initiateBridge(accounts: {
-    bridgeConfig: Address; bridgeRequest: Address; user: Address;
-    userTokenAccount: Address; tokenVault: Address; feeVault: Address; tokenProgram: Address;
-  }, args: { amount: bigint | number; destinationChain: bigint | number; nonce: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("initiate_bridge").accounts({
-      bridge_config: accounts.bridgeConfig, bridge_request: accounts.bridgeRequest,
-      user: accounts.user, user_token_account: accounts.userTokenAccount,
-      token_vault: accounts.tokenVault, fee_vault: accounts.feeVault,
-      token_program: accounts.tokenProgram,
-    }).args({ amount: args.amount, destination_chain: args.destinationChain, nonce: args.nonce }).rpc();
+  initiateBridge(accounts: { bridgeConfig: Address; bridgeRequest: Address; user: Address; userTokenAccount: Address; tokenVault: Address; feeVault: Address; tokenProgram: Address },
+    args: { amount: bigint | number; destinationChain: bigint | number; nonce: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("initiate_bridge", [args.amount, args.destinationChain, args.nonce],
+      [s(accounts.bridgeConfig), s(accounts.bridgeRequest), s(accounts.user), s(accounts.userTokenAccount), s(accounts.tokenVault), s(accounts.feeVault), s(accounts.tokenProgram)]);
   }
 
-  async confirmBridge(accounts: { bridgeConfig: Address; bridgeRequest: Address; authority: Address },
-    args: { wormholeSequence: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("confirm_bridge").accounts({
-      bridge_config: accounts.bridgeConfig, bridge_request: accounts.bridgeRequest,
-      authority: accounts.authority,
-    }).args({ wormhole_sequence: args.wormholeSequence }).rpc();
+  confirmBridge(accounts: { bridgeConfig: Address; bridgeRequest: Address; authority: Address },
+    args: { wormholeSequence: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("confirm_bridge", [args.wormholeSequence],
+      [s(accounts.bridgeConfig), s(accounts.bridgeRequest), s(accounts.authority)]);
   }
 
-  async cancelBridge(accounts: {
-    bridgeConfig: Address; bridgeRequest: Address; user: Address;
-    userTokenAccount: Address; tokenVault: Address; vaultAuthority: Address; tokenProgram: Address;
-  }) {
-    const p = await this.handle.getProgram();
-    return p.method("cancel_bridge").accounts({
-      bridge_config: accounts.bridgeConfig, bridge_request: accounts.bridgeRequest,
-      user: accounts.user, user_token_account: accounts.userTokenAccount,
-      token_vault: accounts.tokenVault, vault_authority: accounts.vaultAuthority,
-      token_program: accounts.tokenProgram,
-    }).args({}).rpc();
+  cancelBridge(accounts: { bridgeConfig: Address; bridgeRequest: Address; user: Address; userTokenAccount: Address; tokenVault: Address; vaultAuthority: Address; tokenProgram: Address }): Promise<ExecuteResult> {
+    return this.h.execute("cancel_bridge", [],
+      [s(accounts.bridgeConfig), s(accounts.bridgeRequest), s(accounts.user), s(accounts.userTokenAccount), s(accounts.tokenVault), s(accounts.vaultAuthority), s(accounts.tokenProgram)]);
   }
 
-  async setBridgePaused(accounts: { bridgeConfig: Address; authority: Address }, args: { paused: number }) {
-    const p = await this.handle.getProgram();
-    return p.method("set_bridge_paused").accounts({
-      bridge_config: accounts.bridgeConfig, authority: accounts.authority,
-    }).args({ paused: args.paused }).rpc();
+  setBridgePaused(accounts: { bridgeConfig: Address; authority: Address }, args: { paused: number }): Promise<ExecuteResult> {
+    return this.h.execute("set_bridge_paused", [args.paused], [s(accounts.bridgeConfig), s(accounts.authority)]);
   }
 
-  async getTotalBridged(accounts: { bridgeConfig: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_total_bridged").accounts({ bridge_config: accounts.bridgeConfig }).args({}).rpc();
+  getTotalBridged(accounts: { bridgeConfig: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_total_bridged", [], [s(accounts.bridgeConfig)]);
   }
 }

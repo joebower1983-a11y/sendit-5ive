@@ -1,25 +1,21 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class CustomPagesClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async updateCustomPage(accounts: { page: Address; creator: Address; tokenLaunch: Address; mint: Address },
-    args: { tier: number; contentHash: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("update_custom_page").accounts({
-      page: accounts.page, creator: accounts.creator,
-      token_launch: accounts.tokenLaunch, mint: accounts.mint,
-    }).args({ tier: args.tier, content_hash: args.contentHash }).rpc();
+  updateCustomPage(accounts: { page: Address; creator: Address; tokenLaunch: Address; mint: Address },
+    args: { tier: number; contentHash: Address }): Promise<ExecuteResult> {
+    return this.h.execute("update_custom_page", [args.tier, s(args.contentHash)],
+      [s(accounts.page), s(accounts.creator), s(accounts.tokenLaunch), s(accounts.mint)]);
   }
 
-  async resetPage(accounts: { page: Address; creator: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("reset_page").accounts(accounts).args({}).rpc();
+  resetPage(accounts: { page: Address; creator: Address }): Promise<ExecuteResult> {
+    return this.h.execute("reset_page", [], [s(accounts.page), s(accounts.creator)]);
   }
 
-  async getPageTier(accounts: { page: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_page_tier").accounts(accounts).args({}).rpc();
+  getPageTier(accounts: { page: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_page_tier", [], [s(accounts.page)]);
   }
 }

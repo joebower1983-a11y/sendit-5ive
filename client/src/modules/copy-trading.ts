@@ -1,45 +1,29 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class CopyTradingClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async createTraderProfile(accounts: { profile: Address; trader: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("create_trader_profile").accounts(accounts).args({}).rpc();
+  createTraderProfile(accounts: { profile: Address; trader: Address }): Promise<ExecuteResult> {
+    return this.h.execute("create_trader_profile", [], [s(accounts.profile), s(accounts.trader)]);
   }
 
-  async followTrader(accounts: { leaderProfile: Address; copyPosition: Address; follower: Address },
-    args: { maxAllocation: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("follow_trader").accounts({
-      leader_profile: accounts.leaderProfile, copy_position: accounts.copyPosition,
-      follower: accounts.follower,
-    }).args({ max_allocation: args.maxAllocation }).rpc();
+  followTrader(accounts: { leaderProfile: Address; copyPosition: Address; follower: Address }, args: { maxAllocation: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("follow_trader", [args.maxAllocation], [s(accounts.leaderProfile), s(accounts.copyPosition), s(accounts.follower)]);
   }
 
-  async unfollowTrader(accounts: { leaderProfile: Address; copyPosition: Address; follower: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("unfollow_trader").accounts({
-      leader_profile: accounts.leaderProfile, copy_position: accounts.copyPosition,
-      follower: accounts.follower,
-    }).args({}).rpc();
+  unfollowTrader(accounts: { leaderProfile: Address; copyPosition: Address; follower: Address }): Promise<ExecuteResult> {
+    return this.h.execute("unfollow_trader", [], [s(accounts.leaderProfile), s(accounts.copyPosition), s(accounts.follower)]);
   }
 
-  async executeCopyTrade(accounts: { leaderProfile: Address; copyPosition: Address; executor: Address },
-    args: { leaderTradeAmount: bigint | number; leaderTotalBalance: bigint | number; isBuy: number; tradePnl: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("execute_copy_trade").accounts({
-      leader_profile: accounts.leaderProfile, copy_position: accounts.copyPosition,
-      executor: accounts.executor,
-    }).args({
-      leader_trade_amount: args.leaderTradeAmount, leader_total_balance: args.leaderTotalBalance,
-      is_buy: args.isBuy, trade_pnl: args.tradePnl,
-    }).rpc();
+  executeCopyTrade(accounts: { leaderProfile: Address; copyPosition: Address; executor: Address },
+    args: { leaderTradeAmount: bigint | number; leaderTotalBalance: bigint | number; isBuy: number; tradePnl: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("execute_copy_trade", [args.leaderTradeAmount, args.leaderTotalBalance, args.isBuy, args.tradePnl],
+      [s(accounts.leaderProfile), s(accounts.copyPosition), s(accounts.executor)]);
   }
 
-  async getWinRate(accounts: { profile: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_win_rate").accounts(accounts).args({}).rpc();
+  getWinRate(accounts: { profile: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_win_rate", [], [s(accounts.profile)]);
   }
 }

@@ -1,61 +1,71 @@
 /**
- * Base client — shared program handle for all module clients.
+ * Base client — wraps FiveSDK static methods for the deployed SendIt script.
  */
 
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { FiveSDK } from "@5ive-tech/sdk";
-import fs from "node:fs";
-import path from "node:path";
-
-/** Resolved program handle returned by FiveSDK.loadProgram */
-export type FiveProgram = Awaited<ReturnType<FiveSDK["loadProgram"]>>;
 
 export interface SenditSDKConfig {
   /** Solana RPC connection */
   connection: Connection;
   /** Fee-payer / signer keypair */
   payer: Keypair;
-  /** Deployed program ID */
-  programId: PublicKey;
-  /** Path to the compiled .five artifact (default: build/sendit-5ive.five) */
-  artifactPath?: string;
+  /** The deployed script account address */
+  scriptAccount: string;
+  /** Optional: Five VM program ID override */
+  fiveVMProgramId?: string;
+}
+
+export interface ExecuteResult {
+  success: boolean;
+  result?: unknown;
+  transactionId?: string;
+  computeUnitsUsed?: number;
+  cost?: number;
+  error?: string;
+  logs?: string[];
 }
 
 /**
- * Lazy-initialised wrapper around the 5IVE SDK program handle.
- * All module clients receive a reference to this and call `getProgram()`.
+ * Shared program handle for all module clients.
+ * Wraps `FiveSDK.executeOnSolana()` with the configured script account.
  */
 export class ProgramHandle {
-  private _program: FiveProgram | null = null;
-  private _sdk: FiveSDK;
-  private _programId: PublicKey;
-  private _artifactPath: string;
+  readonly connection: Connection;
+  readonly payer: Keypair;
+  readonly scriptAccount: string;
+  private fiveVMProgramId?: string;
 
   constructor(config: SenditSDKConfig) {
-    this._sdk = new FiveSDK(config.connection, config.payer);
-    this._programId = config.programId;
-    this._artifactPath =
-      config.artifactPath ??
-      path.resolve(process.cwd(), "build", "sendit-5ive.five");
+    this.connection = config.connection;
+    this.payer = config.payer;
+    this.scriptAccount = config.scriptAccount;
+    this.fiveVMProgramId = config.fiveVMProgramId;
   }
 
-  /** Returns the loaded program, initialising on first call. */
-  async getProgram(): Promise<FiveProgram> {
-    if (!this._program) {
-      const bytecode = fs.readFileSync(this._artifactPath);
-      this._program = await this._sdk.loadProgram({
-        programId: this._programId,
-        bytecode,
-      });
-    }
-    return this._program;
-  }
-
-  get sdk(): FiveSDK {
-    return this._sdk;
-  }
-
-  get programId(): PublicKey {
-    return this._programId;
+  /**
+   * Execute an on-chain function by name.
+   *
+   * @param functionName - the function name as declared in the .v source
+   * @param parameters  - ordered parameter values (matching the ABI)
+   * @param accounts    - ordered account public key strings
+   * @returns execution result including transactionId
+   */
+  async execute(
+    functionName: string,
+    parameters: unknown[] = [],
+    accounts: string[] = [],
+  ): Promise<ExecuteResult> {
+    return FiveSDK.executeOnSolana(
+      this.scriptAccount,
+      this.connection,
+      this.payer,
+      functionName,
+      parameters,
+      accounts,
+      {
+        fiveVMProgramId: this.fiveVMProgramId,
+      },
+    );
   }
 }

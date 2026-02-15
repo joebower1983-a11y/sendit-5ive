@@ -1,37 +1,31 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class DailyRewardsClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async initializeDailyRewards(accounts: { config: Address; authority: Address },
-    args: { pointsPerCheckin: bigint | number; streakMultiplier: bigint | number; pointsPerTradeSol: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("initialize_daily_rewards").accounts(accounts)
-      .args({ points_per_checkin: args.pointsPerCheckin, streak_multiplier: args.streakMultiplier, points_per_trade_sol: args.pointsPerTradeSol }).rpc();
+  initializeDailyRewards(accounts: { config: Address; authority: Address },
+    args: { pointsPerCheckin: bigint | number; streakMultiplier: bigint | number; pointsPerTradeSol: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("initialize_daily_rewards", [args.pointsPerCheckin, args.streakMultiplier, args.pointsPerTradeSol],
+      [s(accounts.config), s(accounts.authority)]);
   }
 
-  async dailyCheckin(accounts: { config: Address; userRewards: Address; user: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("daily_checkin").accounts({ config: accounts.config, user_rewards: accounts.userRewards, user: accounts.user }).args({}).rpc();
+  dailyCheckin(accounts: { config: Address; userRewards: Address; user: Address }): Promise<ExecuteResult> {
+    return this.h.execute("daily_checkin", [], [s(accounts.config), s(accounts.userRewards), s(accounts.user)]);
   }
 
-  async recordTradeReward(accounts: { config: Address; userRewards: Address; user: Address },
-    args: { tradeSolAmount: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("record_trade_reward").accounts({ config: accounts.config, user_rewards: accounts.userRewards, user: accounts.user })
-      .args({ trade_sol_amount: args.tradeSolAmount }).rpc();
+  recordTradeReward(accounts: { config: Address; userRewards: Address; user: Address },
+    args: { tradeSolAmount: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("record_trade_reward", [args.tradeSolAmount],
+      [s(accounts.config), s(accounts.userRewards), s(accounts.user)]);
   }
 
-  async redeemPoints(accounts: { userRewards: Address; user: Address },
-    args: { pointsToSpend: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("redeem_points").accounts({ user_rewards: accounts.userRewards, user: accounts.user })
-      .args({ points_to_spend: args.pointsToSpend }).rpc();
+  redeemPoints(accounts: { userRewards: Address; user: Address }, args: { pointsToSpend: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("redeem_points", [args.pointsToSpend], [s(accounts.userRewards), s(accounts.user)]);
   }
 
-  async getUserPoints(accounts: { userRewards: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_user_points").accounts({ user_rewards: accounts.userRewards }).args({}).rpc();
+  getUserPoints(accounts: { userRewards: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_user_points", [], [s(accounts.userRewards)]);
   }
 }

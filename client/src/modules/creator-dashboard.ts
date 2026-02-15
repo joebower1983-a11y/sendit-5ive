@@ -1,40 +1,28 @@
-import type { ProgramHandle } from "../base.js";
+import type { ProgramHandle, ExecuteResult } from "../base.js";
 import type { Address } from "../types.js";
+const s = (a: Address): string => typeof a === "string" ? a : a.toBase58();
 
 export class CreatorDashboardClient {
-  constructor(private handle: ProgramHandle) {}
+  constructor(private h: ProgramHandle) {}
 
-  async updateCreatorAnalytics(accounts: { creatorAnalytics: Address; payer: Address; creator: Address },
-    args: {
-      totalLaunches: bigint | number; totalVolumeGenerated: bigint | number;
-      totalFeesEarned: bigint | number; totalHoldersAcrossTokens: bigint | number;
-      bestPerformingToken: Address; avgGraduationTime: bigint | number;
-    }) {
-    const p = await this.handle.getProgram();
-    return p.method("update_creator_analytics").accounts({
-      creator_analytics: accounts.creatorAnalytics, payer: accounts.payer, creator: accounts.creator,
-    }).args({
-      total_launches: args.totalLaunches, total_volume_generated: args.totalVolumeGenerated,
-      total_fees_earned: args.totalFeesEarned, total_holders_across_tokens: args.totalHoldersAcrossTokens,
-      best_performing_token: args.bestPerformingToken, avg_graduation_time: args.avgGraduationTime,
-    }).rpc();
+  updateCreatorAnalytics(accounts: { creatorAnalytics: Address; payer: Address; creator: Address },
+    args: { totalLaunches: bigint | number; totalVolumeGenerated: bigint | number; totalFeesEarned: bigint | number; totalHoldersAcrossTokens: bigint | number; bestPerformingToken: Address; avgGraduationTime: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("update_creator_analytics",
+      [args.totalLaunches, args.totalVolumeGenerated, args.totalFeesEarned, args.totalHoldersAcrossTokens, s(args.bestPerformingToken), args.avgGraduationTime],
+      [s(accounts.creatorAnalytics), s(accounts.payer), s(accounts.creator)]);
   }
 
-  async updateTokenSnapshot(accounts: { snapshot: Address; payer: Address; tokenMint: Address },
-    args: { hourlyVolumeEntry: bigint | number; holderGrowthEntry: bigint | number }) {
-    const p = await this.handle.getProgram();
-    return p.method("update_token_snapshot").accounts({
-      snapshot: accounts.snapshot, payer: accounts.payer, token_mint: accounts.tokenMint,
-    }).args({ hourly_volume_entry: args.hourlyVolumeEntry, holder_growth_entry: args.holderGrowthEntry }).rpc();
+  updateTokenSnapshot(accounts: { snapshot: Address; payer: Address; tokenMint: Address },
+    args: { hourlyVolumeEntry: bigint | number; holderGrowthEntry: bigint | number }): Promise<ExecuteResult> {
+    return this.h.execute("update_token_snapshot", [args.hourlyVolumeEntry, args.holderGrowthEntry],
+      [s(accounts.snapshot), s(accounts.payer), s(accounts.tokenMint)]);
   }
 
-  async getCreatorVolume(accounts: { creatorAnalytics: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_creator_volume").accounts({ creator_analytics: accounts.creatorAnalytics }).args({}).rpc();
+  getCreatorVolume(accounts: { creatorAnalytics: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_creator_volume", [], [s(accounts.creatorAnalytics)]);
   }
 
-  async getCreatorLaunches(accounts: { creatorAnalytics: Address }) {
-    const p = await this.handle.getProgram();
-    return p.method("get_creator_launches").accounts({ creator_analytics: accounts.creatorAnalytics }).args({}).rpc();
+  getCreatorLaunches(accounts: { creatorAnalytics: Address }): Promise<ExecuteResult> {
+    return this.h.execute("get_creator_launches", [], [s(accounts.creatorAnalytics)]);
   }
 }
