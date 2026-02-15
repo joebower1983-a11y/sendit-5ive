@@ -5,7 +5,7 @@
 // SPL Token CPI Interface
 // ---------------------------------------------------------------------------
 
-interface TokenProgram @program("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA") {
+interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
     @discriminator(3)
     spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
 }
@@ -61,7 +61,7 @@ pub create_airdrop(
     require(max_recipients > 0);
 
     // Transfer tokens from creator to vault
-    TokenProgram.spl_transfer(creator_token_account, vault, creator, total_amount);
+    Token2022.spl_transfer(creator_token_account, vault, creator, total_amount);
 
     campaign.campaign_id = campaign_id;
     campaign.token_mint = token_mint.key;
@@ -93,7 +93,7 @@ pub claim_airdrop(
     require(amount > 0);
 
     // Transfer from vault to claimant
-    TokenProgram.spl_transfer(vault, claimant_token_account, vault_authority, amount);
+    Token2022.spl_transfer(vault, claimant_token_account, vault_authority, amount);
 
     campaign.claimed_count = campaign.claimed_count + 1;
 
@@ -122,7 +122,7 @@ pub cancel_airdrop(
     require(clock >= campaign.deadline);
 
     // Transfer remaining tokens back to creator
-    TokenProgram.spl_transfer(vault, creator_token_account, vault_authority, remaining_amount);
+    Token2022.spl_transfer(vault, creator_token_account, vault_authority, remaining_amount);
 
     campaign.is_active = 0;
 }
