@@ -6,6 +6,7 @@ description = "A 5IVE VM project"
 source_dir = "src"
 build_dir = "build"
 target = "vm"
+entry_point = "src/main.v"
 
 [optimizations]
 enable_compression = true

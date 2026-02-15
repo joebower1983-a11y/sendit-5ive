@@ -88,7 +88,7 @@ pub remove_video(
 }
 
 /// Get total votes (view)
-pub get_total_votes(
+pub get_total_video_votes(
     token_video: TokenVideo
 ) -> u64 {
     let total: u64 = token_video.upvotes + token_video.downvotes;

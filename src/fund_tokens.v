@@ -1,10 +1,10 @@
-// Send.it Fund Tokens Module — ported from Anchor to 5IVE DSL
-// Index fund / basket token management
-
 interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
     @discriminator(3)
     spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
 }
+// Send.it Fund Tokens Module — ported from Anchor to 5IVE DSL
+// Index fund / basket token management
+
 
 // ---------------------------------------------------------------------------
 // Accounts

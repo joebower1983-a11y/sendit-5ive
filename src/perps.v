@@ -1,3 +1,7 @@
+interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
+    @discriminator(3)
+    spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
+}
 // Send.it Perpetual Futures Trading Engine — ported from Anchor to 5IVE DSL
 // Full port of perps.rs (1602 lines)
 //
@@ -11,10 +15,6 @@
 // SPL Token-2022 CPI Interface
 // ---------------------------------------------------------------------------
 
-interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
-    @discriminator(3)
-    spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
-}
 
 // ---------------------------------------------------------------------------
 // Constants (embedded as literals in logic — DSL has no const declarations)

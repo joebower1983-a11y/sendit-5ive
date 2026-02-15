@@ -150,7 +150,7 @@ pub toggle_auto_compound(
     user_state.auto_compound = enabled;
 }
 
-pub get_pending_rewards(
+pub get_pending_holder_rewards(
     pool: RewardPool,
     user_state: UserRewardState
 ) -> u64 {

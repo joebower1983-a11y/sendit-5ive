@@ -1,9 +1,9 @@
-// Send.it Lending Module — ported from Anchor to 5IVE DSL
-
 interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
     @discriminator(3)
     spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
 }
+// Send.it Lending Module — ported from Anchor to 5IVE DSL
+
 
 // ---------------------------------------------------------------------------
 // Accounts

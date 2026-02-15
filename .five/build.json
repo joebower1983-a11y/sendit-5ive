@@ -1,12 +1,13 @@
 {
-  "artifact_path": "build/voting.five",
+  "artifact_path": "/home/joebower1983/.openclaw/workspace/sendit-5ive/build/sendit-5ive.five",
   "compiler_version": "unknown",
   "source_files": [
-    "/home/joebower1983/.openclaw/workspace/sendit-5ive/src/voting.v"
+    "/home/joebower1983/.openclaw/workspace/sendit-5ive/build/sendit-combined.v"
   ],
   "target": "vm",
-  "timestamp": "2026-02-15T05:49:45.074Z",
-  "hash": "d084b4ba96117eb34aced018eee009dc522fd82af93f79da6c930ddd13eb6f3d",
+  "timestamp": "2026-02-15T13:48:22.827Z",
+  "hash": "6f435f142c11975c4dbf8cea33293295e59d238b79b897943cdefb3c45c93ff2",
   "format": "five",
+  "entry_point": "src/main.v",
   "source_dir": "src"
 }
