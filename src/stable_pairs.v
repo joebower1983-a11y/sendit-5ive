@@ -4,6 +4,16 @@ interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
 }
 // Send.it Stable Pairs Module — ported from Anchor to 5IVE DSL
 // Constant-product AMM for token/stablecoin pairs
+//
+// Supported stablecoin mints (Token-2022):
+//   PYUSD (PayPal USD) — Mainnet: 2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo
+//   USDC, USDT, and any Token-2022 compatible mint
+//
+// Example pairs:
+//   PYUSD/SOL  — create_stable_pair(token_mint=SOL_MINT, stable_mint=PYUSD_MINT, fee_bps=10)
+//   PYUSD/USDC — create_stable_pair(token_mint=PYUSD_MINT, stable_mint=USDC_MINT, fee_bps=5)
+//                Low fee recommended for stablecoin-to-stablecoin pairs
+//   TOKEN/PYUSD — any graduated token paired against PYUSD
 
 
 // ---------------------------------------------------------------------------
@@ -262,4 +272,38 @@ pub get_stable_reserve(
     stable_pair: StablePairConfig
 ) -> u64 {
     return stable_pair.pool_stable_reserve;
+}
+
+// ---------------------------------------------------------------------------
+// PYUSD Helpers
+// ---------------------------------------------------------------------------
+
+/// Recommended fee for stablecoin-to-stablecoin pairs (PYUSD/USDC): 5 bps (0.05%)
+/// For volatile token/PYUSD pairs: 30 bps (0.30%) default
+/// These are suggestions — create_stable_pair accepts any fee_bps <= 500
+
+/// Calculate swap output for a stablecoin-to-stablecoin pair
+/// At equal reserves this approximates 1:1 minus fee
+pub calc_stable_swap_output(
+    reserve_in: u64,
+    reserve_out: u64,
+    amount_in: u64,
+    fee_bps: u64
+) -> u64 {
+    let fee: u64 = (amount_in * fee_bps) / 10000;
+    let net: u64 = amount_in - fee;
+    let numerator: u64 = reserve_out * net;
+    let denominator: u64 = reserve_in + net;
+    return numerator / denominator;
+}
+
+/// Check if a pair is a stablecoin-to-stablecoin pair (both sides are stables)
+/// Returns 1 if fee_bps <= 10 (heuristic: low-fee pairs are stable/stable)
+pub is_stable_stable_pair(
+    stable_pair: StablePairConfig
+) -> u64 {
+    if stable_pair.fee_bps <= 10 {
+        return 1;
+    }
+    return 0;
 }

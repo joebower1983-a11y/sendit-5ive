@@ -153,6 +153,46 @@ npx 5ive compile src/composer.v
 npx 5ive compile tests/composer.test.v
 ```
 
+## PYUSD (PayPal USD) Integration
+
+Send.it supports PYUSD as a first-class Token-2022 stablecoin across all DeFi modules:
+
+**Mainnet Mint:** `2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo`
+
+### Supported Modules
+
+| Module | PYUSD Usage |
+|---|---|
+| **stable_pairs.v** | PYUSD/SOL, PYUSD/USDC, TOKEN/PYUSD trading pairs |
+| **lending.v** | PYUSD as collateral (90% LTV) or borrowable asset |
+| **perps.v** | PYUSD as margin collateral for perpetual futures |
+| **pyusd_vault.v** | Savings vault, on-ramp tracking, PYUSD↔USDC swap, LP incentives |
+
+### Quick Start Examples
+
+```
+// Create a PYUSD/SOL trading pair (30 bps fee)
+create_stable_pair(token_mint=SOL_MINT, stable_mint=PYUSD_MINT, fee_bps=30)
+
+// Create a PYUSD lending pool (90% LTV, 3% interest)
+create_lending_pool(collateral_mint=PYUSD_MINT, interest_rate_bps=300, ltv_ratio=9000, liquidation_threshold_bps=9500)
+
+// Initialize PYUSD-collateralized BTC perps market
+initialize_perp_market(token_mint=BTC_MINT, collateral_mint=PYUSD_MINT, max_leverage=10, ...)
+
+// PYUSD savings vault (5% yield)
+create_pyusd_savings_vault(pyusd_mint=PYUSD_MINT, yield_rate_bps=500)
+
+// PYUSD ↔ USDC swap pool (5 bps fee)
+create_stable_swap_pool(mint_a=PYUSD_MINT, mint_b=USDC_MINT, fee_bps=5)
+```
+
+### Compile PYUSD Module
+
+```bash
+npx 5ive compile src/pyusd_vault.v
+```
+
 ## Learn More
 
 - [5IVE VM Documentation](https://five-vm.dev)

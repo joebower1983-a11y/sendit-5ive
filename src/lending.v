@@ -3,6 +3,16 @@ interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
     spl_transfer(from: account @mut, to: account @mut, authority: account @signer, amount: u64);
 }
 // Send.it Lending Module — ported from Anchor to 5IVE DSL
+//
+// PYUSD Integration:
+//   PYUSD (PayPal USD) — Mainnet: 2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo
+//   As collateral: deposit PYUSD, borrow SOL — recommended LTV 9000 (90%)
+//   As borrowable: deposit SOL collateral, borrow PYUSD — standard LTV
+//   Stablecoins get higher LTV ratios due to low volatility
+//
+// Example pool creation:
+//   create_lending_pool(collateral_mint=PYUSD_MINT, interest_rate_bps=300,
+//                       ltv_ratio=9000, liquidation_threshold_bps=9500)
 
 
 // ---------------------------------------------------------------------------
@@ -224,4 +234,36 @@ pub get_pool_utilization(
         return 0;
     }
     return (lending_pool.total_borrowed * 10000) / lending_pool.total_deposited;
+}
+
+// ---------------------------------------------------------------------------
+// PYUSD / Stablecoin LTV Helpers
+// ---------------------------------------------------------------------------
+
+/// Returns recommended LTV ratio for stablecoins (90% = 9000 bps)
+/// Volatile tokens should use 70% (7000) or lower
+/// is_stablecoin: 1 for stablecoins (PYUSD, USDC), 0 for volatile tokens
+pub get_recommended_ltv(is_stablecoin: u8) -> u64 {
+    if is_stablecoin == 1 {
+        return 9000;
+    }
+    return 7000;
+}
+
+/// Returns recommended liquidation threshold for stablecoins (95% = 9500 bps)
+/// Volatile tokens should use 80% (8000)
+pub get_recommended_liq_threshold(is_stablecoin: u8) -> u64 {
+    if is_stablecoin == 1 {
+        return 9500;
+    }
+    return 8000;
+}
+
+/// Returns recommended interest rate for stablecoin pools (3% = 300 bps)
+/// Volatile tokens typically 5-10% (500-1000 bps)
+pub get_recommended_interest_rate(is_stablecoin: u8) -> u64 {
+    if is_stablecoin == 1 {
+        return 300;
+    }
+    return 500;
 }

@@ -5,6 +5,25 @@ interface Token2022 @program("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb") {
 // Send.it Perpetual Futures Trading Engine — ported from Anchor to 5IVE DSL
 // Full port of perps.rs (1602 lines)
 //
+// PYUSD as Collateral:
+//   PYUSD (PayPal USD) — Mainnet: 2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo
+//   PYUSD can be used as collateral_mint for any perps market.
+//   Stablecoin collateral provides stable margin value (no collateral volatility risk).
+//
+//   Example: Initialize a PYUSD-collateralized BTC perps market:
+//     initialize_perp_market(
+//       token_mint = BTC_TOKEN_MINT,
+//       collateral_mint = PYUSD_MINT,   // 2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo
+//       max_leverage = 10,
+//       funding_interval = 3600,
+//       maintenance_margin = 25000,      // 2.5%
+//       liquidation_fee = 10000,         // 1%
+//       maker_fee = 200, taker_fee = 600,
+//       max_open_interest = 1000000000000,
+//       max_position_size = 100000000000
+//     )
+//   Users deposit PYUSD via deposit_collateral, then open long/short positions.
+//
 // Conventions:
 //   Side: 0 = Long, 1 = Short
 //   OrderType: 0 = Limit, 1 = Market
