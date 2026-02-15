@@ -1,20 +1,82 @@
 {
   "accounts": {
-    "sample_account": {
+    "stake_pool": {
       "owner": "system",
+      "lamports": 10000000,
+      "data_len": 256,
+      "is_writable": true
+    },
+    "user_stake": {
+      "owner": "system",
+      "lamports": 10000000,
+      "data_len": 256,
+      "is_writable": true
+    },
+    "creator": {
+      "owner": "system",
+      "lamports": 100000000,
+      "is_writable": true,
+      "is_signer": true
+    },
+    "mint": {
+      "owner": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
       "lamports": 1000000,
-      "data_len": 0,
+      "data_len": 82
+    },
+    "vault_token_account": {
+      "owner": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "lamports": 2000000,
+      "data_len": 165,
+      "is_writable": true
+    },
+    "user_token_account": {
+      "owner": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+      "lamports": 2000000,
+      "data_len": 165,
       "is_writable": true
     }
   },
   "tests": {
-    "test_add": {
-      "parameters": [
-        10,
-        20
-      ],
+    "test_create_stake_pool": {
+      "parameters": [1000],
       "expected": {
-        "success": true
+        "success": true,
+        "result": 1000
+      }
+    },
+    "test_stake_balance_update": {
+      "parameters": [100, 50],
+      "expected": {
+        "success": true,
+        "result": 150
+      }
+    },
+    "test_unstake_balance_update": {
+      "parameters": [1000, 500],
+      "expected": {
+        "success": true,
+        "result": 500
+      }
+    },
+    "test_reward_calculation": {
+      "parameters": [100, 10, 1000000000000],
+      "expected": {
+        "success": true,
+        "result": 1000
+      }
+    },
+    "test_zero_stake_rejected": {
+      "parameters": [0],
+      "expected": {
+        "success": true,
+        "result": 0
+      }
+    },
+    "test_insufficient_unstake": {
+      "parameters": [100, 200],
+      "expected": {
+        "success": true,
+        "result": 0
       }
     }
   }

@@ -1,0 +1,12 @@
+{
+  "artifact_path": "/home/joebower1983/.openclaw/workspace/sendit-5ive/build/sendit-5ive.five",
+  "compiler_version": "unknown",
+  "source_files": [
+    "/home/joebower1983/.openclaw/workspace/sendit-5ive/src/prediction.v"
+  ],
+  "target": "vm",
+  "timestamp": "2026-02-15T05:05:18.518Z",
+  "hash": "a04332a2084844673e70c2df75eca6c371b6fc31feddf168d93663abfd0de43c",
+  "format": "five",
+  "source_dir": "src"
+}
