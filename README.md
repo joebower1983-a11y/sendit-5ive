@@ -124,6 +124,35 @@ If your project uses multiple modules with `use` or `import` statements, 5IVE CL
 5ive build
 ```
 
+## Cross-Module Composition Layer
+
+The `src/composer.v` module provides a composition layer that orchestrates interactions between Send.it's 31 independent modules. Since 5IVE modules compile independently, the composer uses a **bridge pattern** — it mirrors external account layouts for read access and maintains its own `UserComposerState` to track pending cross-module effects.
+
+### Compositions Implemented
+
+| Composition | Description |
+|---|---|
+| **Staking ↔ Reputation** | Staking amounts boost reputation score (capped at +25); reputation tier gates staking access |
+| **Points ↔ Achievements** | Achievement badges grant point multipliers; point levels unlock new achievement badges |
+| **Lending ↔ Staking** | Staked positions count as lending collateral (configurable ratio); lending interest partially routes to staking rewards |
+| **Referral ↔ Points** | Referral activity earns points; point milestones unlock referral bonuses |
+| **Reputation ↔ Prediction** | Reputation score gates prediction market creation; winning bets boost reputation |
+| **Fee Splitting ↔ Holder Rewards** | Protocol fees are partially routed to holder reward pools |
+
+### Architecture
+
+- **`ComposerConfig`** — global config with tunable parameters for all composition ratios
+- **`UserComposerState`** — per-user state tracking pending cross-module effects
+- Pure view functions (`calc_*`, `check_*`) for off-chain queries
+- Recording functions (`record_*`) for on-chain state updates consumed by oracles/cranks
+
+### Compile
+
+```bash
+npx 5ive compile src/composer.v
+npx 5ive compile tests/composer.test.v
+```
+
 ## Learn More
 
 - [5IVE VM Documentation](https://five-vm.dev)
