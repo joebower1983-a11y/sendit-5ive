@@ -2,11 +2,11 @@
   "artifact_path": "/home/joebower1983/.openclaw/workspace/sendit-5ive/build/sendit-5ive.five",
   "compiler_version": "unknown",
   "source_files": [
-    "/home/joebower1983/.openclaw/workspace/sendit-5ive/src/prediction.v"
+    "/home/joebower1983/.openclaw/workspace/sendit-5ive/src/fund_tokens.v"
   ],
   "target": "vm",
-  "timestamp": "2026-02-15T05:05:18.518Z",
-  "hash": "a04332a2084844673e70c2df75eca6c371b6fc31feddf168d93663abfd0de43c",
+  "timestamp": "2026-02-15T05:11:42.375Z",
+  "hash": "6451ea9ca4ee0576b152a45dffe3000aaa4d3b989b886a4898381841e1688691",
   "format": "five",
   "source_dir": "src"
 }
