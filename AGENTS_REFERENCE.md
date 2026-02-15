@@ -1,0 +1,218 @@
+# AGENTS_REFERENCE.md - 5IVE Practical Reference
+
+This reference is for agents that do not have direct access to the 5IVE monorepo internals.
+Use with `./AGENTS.md` and `./AGENTS_CHECKLIST.md`.
+
+## 1) Core Surfaces
+
+1. Source language: `.v`
+2. Build artifact: `.five` (bytecode + ABI)
+3. CLI: `@5ive-tech/cli` commands `5ive` or `five`
+4. SDK: `@5ive-tech/sdk`
+
+## 2) Online and Offline Working Modes
+
+1. Online mode:
+- use docs/examples as supplemental context
+- still treat compile output and tx logs as authoritative
+2. Offline mode:
+- rely on `five.toml`, CLI help, compiler errors, generated ABI, and runtime logs
+- do not block waiting for external references
+
+## 3) Compiler-Critical Syntax
+
+### Account declarations
+
+```v
+account Vault {
+    authority: pubkey;
+    balance: u64;
+    status: u8;
+}
+```
+
+Rule: every account field must end with `;`.
+
+### Signers and key extraction
+
+```v
+pub update_authority(
+    state: Vault @mut,
+    authority: account @signer,
+    next_authority: pubkey
+) {
+    require(state.authority == authority.key);
+    state.authority = next_authority;
+}
+```
+
+Rules:
+1. signer params are `account @signer`
+2. use `.key` when comparing or assigning pubkeys from account params
+
+### Zero pubkey sentinel
+
+Use `0` for unset/revoked pubkey values in assignments and checks.
+Do not use `pubkey(0)`; current parser paths treat `pubkey` as a type token, not a callable constructor.
+
+### Init attribute order
+
+Canonical order for initialized account params:
+
+`Type @mut @init(payer=name, space=bytes) @signer`
+
+```v
+pub initialize(
+    state: Vault @mut @init(payer=creator, space=128) @signer,
+    creator: account @mut @signer
+) {
+    state.authority = creator.key;
+    state.balance = 0;
+    state.status = 1;
+}
+```
+
+### Return types and locals
+
+```v
+pub quote(amount: u64, fee_bps: u64) -> u64 {
+    let mut result: u64 = amount;
+    result = result - ((amount * fee_bps) / 10000);
+    return result;
+}
+```
+
+Rules:
+1. functions returning values must use `-> ReturnType`
+2. locals are immutable unless declared with `let mut`
+
+## 4) Built-ins and Units
+
+Compiler-aligned signatures:
+1. `get_clock() -> u64`
+2. `derive_pda(seed1, seed2, ...) -> (pubkey, u8)`
+3. `derive_pda(seed1, seed2, ..., bump: u8) -> pubkey`
+
+Recommended unit standards:
+1. time in seconds
+2. USD price scale `1e6`
+3. rate scale `1e9` (or `1e12`, but stay consistent per contract)
+
+## 5) CPI Rules
+
+1. Interface uses `@program("...")` with valid base58 program ID.
+2. Anchor CPI: use `@anchor` and do not add manual discriminator.
+3. Non-anchor CPI: use single-byte `@discriminator(N)`.
+4. Interface account params use `Account`, not `pubkey`.
+5. Invoke interface methods with dot notation: `Iface.method(...)`.
+6. Pass account params directly in CPI calls, not `.key`.
+7. CPI-writable accounts must be `account @mut` in caller signature.
+
+## 6) Build and Test Commands
+
+```bash
+5ive build
+5ive test --sdk-runner
+5ive test --filter "test_*" --verbose
+```
+
+Discovery behavior:
+1. test functions can be named `pub test_*`
+2. `.v` tests and `.test.json` suites are supported by `5ive test`
+
+## 7) Security Review Minimum
+
+Before deploy, verify:
+1. every privileged instruction checks signer/authority correctly
+2. state transitions are explicit and valid
+3. math and units are consistent and bounded
+4. CPI interfaces and account mutability/signer expectations are correct
+5. negative tests cover auth, state, and boundary failures
+
+## 8) Debugging Loop for Weak Error Messages
+
+When compiler errors are unclear, use this fixed loop:
+1. Keep the requested contract scope intact.
+2. Compile and capture the first failing file/line.
+3. Check parser-critical items first:
+- account field semicolons
+- init attribute order
+- signer type and `.key` usage
+- `let` vs `let mut`
+4. Recompile immediately after each small fix.
+5. If still failing, isolate one instruction block, fix it, then merge back.
+6. Do not downgrade to a simplified contract unless the user requests it.
+
+## 9) five.toml and Program ID Resolution
+
+On-chain command precedence (`deploy`, `execute`, `namespace`):
+1. `--program-id`
+2. `five.toml [deploy].program_id`
+3. current CLI config target/program
+4. `FIVE_PROGRAM_ID`
+
+Never deploy/execute with ambiguous target or program ID.
+
+## 10) Deployment and Execution Evidence
+
+Minimum evidence to report:
+1. target and program ID used
+2. deploy signature (if deploy is in scope)
+3. execute signature(s)
+4. confirmed `meta.err == null`
+5. compute units consumed
+
+Use CLI and RPC checks to confirm transaction status and logs; never infer success from submission alone.
+
+## 11) SDK Client Pattern
+
+Use this pattern for clients:
+
+```ts
+import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import { FiveSDK } from "@5ive-tech/sdk";
+import fs from "node:fs";
+
+const connection = new Connection("http://127.0.0.1:8899", "confirmed");
+const payer = Keypair.fromSecretKey(
+  Uint8Array.from(JSON.parse(fs.readFileSync("./payer.json", "utf8")))
+);
+
+const programId = new PublicKey("REPLACE_WITH_PROGRAM_ID");
+const artifact = fs.readFileSync("./build/main.five");
+
+const sdk = new FiveSDK(connection, payer);
+const program = await sdk.loadProgram({
+  programId,
+  bytecode: artifact,
+});
+
+const sig = await program
+  .method("initialize")
+  .accounts({
+    state: new PublicKey("REPLACE_STATE"),
+    authority: payer.publicKey,
+  })
+  .args({})
+  .rpc();
+
+console.log("signature", sig);
+```
+
+Client debugging checks:
+1. method name must exactly match ABI
+2. required accounts must all be provided
+3. args shape/order must match ABI
+4. signer/payer must be funded and correct
+5. confirm tx and inspect logs on failure
+
+## 12) Required Final Output (Default)
+
+Unless the user explicitly asks for a different format, include:
+1. scope implemented
+2. files changed
+3. build/test commands and results
+4. security checks and outcomes
+5. deploy/execute evidence (`meta.err`, signatures, compute units)
+6. SDK/client usage snippet or runnable path
+7. remaining risks and next steps
